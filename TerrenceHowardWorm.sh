@@ -31,14 +31,16 @@ main() {
         x=$(cube_and_divide "$x")
 
         # Spawn a new instance if x is close to 2
-        if [ "$(echo "scale=10; $x - 2 < $tolerance && $x - 2 > -$tolerance" | bc)" -eq 1 ]; then
+        if [ "$(echo "scale=10; if (($x - 2) < $tolerance) && (($x - 2) > -$tolerance) then 1 else 0" | bc)" -eq 1 ]; then
             bash "$0" &
             child_pids+=($!)
             echo "Spawned a new instance at iteration $iteration with value 2"
         fi
 
         # Check if x deviates from expected values
-        if [ "$(echo "scale=10; ($x - sqrt(2) < $tolerance && $x - sqrt(2) > -$tolerance) || ($x - (sqrt(2)^3 / 2) < $tolerance && $x - (sqrt(2)^3 / 2) > -$tolerance) || ($x - 2 < $tolerance && $x - 2 > -$tolerance)" | bc)" -eq 0 ]; then
+        sqrt2=$(echo "scale=10; sqrt(2)" | bc)
+        cube_sqrt2_div_2=$(echo "scale=10; ($sqrt2^3) / 2" | bc)
+        if [ "$(echo "scale=10; if ((($x - $sqrt2) < $tolerance) && (($x - $sqrt2) > -$tolerance)) || ((($x - $cube_sqrt2_div_2) < $tolerance) && (($x - $cube_sqrt2_div_2) > -$tolerance)) || ((($x - 2) < $tolerance) && (($x - 2) > -$tolerance)) then 0 else 1" | bc)" -eq 1 ]; then
             echo "Deviation detected at iteration $iteration with value $x"
             break
         fi
